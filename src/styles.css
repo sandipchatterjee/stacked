@@ -8,3 +8,13 @@
 #data-row {
     padding: 15px 0px 0px 0px;
 }
+
+#checkinCount {
+    background: black;
+    border-radius: 15px;
+    padding: 5px;
+    margin: 20px;
+    text-align: center;
+    display: inline-block;
+    color: #ffa647;
+}
