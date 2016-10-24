@@ -1,8 +1,8 @@
 var LATESTAPIDATE = '&v=20161021';
 var access_token = parseStringFromURL('#access_token=');
 var resultLimit = 500;
-var afterTimestamp = '1472754105';
-var beforeTimestamp = '1475346105';
+var afterTimestamp = '1474004105';
+var beforeTimestamp = '1474346105';
 var monthMap = {0: 'Jan',
                 1: 'Feb',
                 2: 'Mar',
@@ -46,34 +46,9 @@ if (access_token) {
 
             // print entire response for now
             console.log(data.response);
-            // var names = getAllCheckinNames(data.response);
-            var checkinItems = data.response.checkins.items;
 
-            checkinTable = d3.select('#checkin-table');
-            header = checkinTable.append('thead');
-            row = header.append('tr');
+            loadCheckinTable(data.response);
 
-            row.append('th')
-               .text('Venue');
-            row.append('th')
-               .text('Date');
-
-            tableBody = checkinTable.append('tbody');
-            for (var i = 0; i < 20; i++) {
-                row = tableBody.append('tr');
-                row.append('td')
-                   .text(checkinItems[i].venue.name)
-                checkInDate = toDate(checkinItems[i].createdAt);
-                row.append('td')
-                   .text(monthMap[checkInDate.getMonth()] + ' ' + checkInDate.getFullYear());
-            }
-            if (checkinItems.length > 20) {
-                row = tableBody.append('tr');
-                row.append('td')
-                   .text('...')
-                row.append('td')
-                   .text('');
-            }
         },
         error: function(jqXHR, textStatus, e) {
             console.error(e);
@@ -84,6 +59,36 @@ if (access_token) {
     redirect_uri = 'http://localhost:8000/src/';
     auth_url = 'https://foursquare.com/oauth2/authenticate?client_id=' + client_id + '&response_type=token&redirect_uri=' + redirect_uri;
     $('#connection').html('<a href="' + auth_url + '" target="_new"><img src="connect4sq.png" alt="Connect to Foursquare"></a>');
+}
+
+function loadCheckinTable(response) {
+    var checkinItems = response.checkins.items;
+
+    checkinTable = d3.select('#checkin-table');
+    header = checkinTable.append('thead');
+    row = header.append('tr');
+
+    row.append('th')
+       .text('Venue');
+    row.append('th')
+       .text('Date');
+
+    tableBody = checkinTable.append('tbody');
+    for (var i = 0; i < 20; i++) {
+        row = tableBody.append('tr');
+        row.append('td')
+           .text(checkinItems[i].venue.name)
+        checkInDate = toDate(checkinItems[i].createdAt);
+        row.append('td')
+           .text(monthMap[checkInDate.getMonth()] + ' ' + checkInDate.getFullYear());
+    }
+    if (checkinItems.length > 20) {
+        row = tableBody.append('tr');
+        row.append('td')
+           .text('...')
+        row.append('td')
+           .text('');
+    }
 }
 
 function toDate(epochTime, correction=0) {
