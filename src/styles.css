@@ -1,0 +1,10 @@
+#title-bar {
+    border-radius: 0px 0px 15px 15px;
+    background: #ffa647;
+    padding: 0px 15px 10px 15px;
+    text-align: center;
+}
+
+#data-row {
+    padding: 15px 0px 0px 0px;
+}
