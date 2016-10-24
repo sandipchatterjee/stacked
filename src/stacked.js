@@ -36,6 +36,70 @@ if (access_token) {
         }
     });
 
+    populateFormFields("from");
+    populateFormFields("to");
+
+} else {
+    client_id = 'MFEBTBYZ0ED2DBCS04NWC25CTMO0FVN5GWYYEGWV2SF4GHBG';
+    redirect_uri = 'http://localhost:8000/src/';
+    auth_url = 'https://foursquare.com/oauth2/authenticate?client_id=' + client_id + '&response_type=token&redirect_uri=' + redirect_uri;
+    $('#connection').html('<a href="' + auth_url + '" target="_new"><img src="connect4sq.png" alt="Connect to Foursquare"></a>');
+}
+
+// what to do on form update:
+$(function() {
+    function update() {
+        var updatedFormData = $('#dateForm').serializeArray()
+                                            .reduce(function(fullMap, miniMap) { 
+                                                        fullMap[miniMap.name] = miniMap.value;
+                                                        return fullMap;
+                                                    },
+                                                {});
+        console.log(updatedFormData);
+        var startDate = toEpoch(updatedFormData.fromYear, updatedFormData.fromMonth, 1);
+        if (updatedFormData.toMonth == 1) {
+            // february, not accounting for leap years
+            lastDay = 28;
+
+        } else if (updatedFormData.toMonth < 7) {
+            // January through July
+            if (updatedFormData.toMonth % 2 == 0) {
+                // odd months (Jan/March/May/July) -- remember that the month cal is 0-indexed
+                lastDay = 31;
+            } else {
+                // even months only (except Feb, which was removed earlier)
+                lastDay = 30;
+            }
+        } else {
+            // August through December
+            if (updatedFormData.toMonth % 2 == 0) {
+                // odd months (Sep/Nov) -- remember that the month cal is 0-indexed
+                lastDay = 30;
+            } else {
+                // Aug/Oct/Dec
+                lastDay = 31;
+            }
+        }
+
+        var endDate = toEpoch(updatedFormData.toYear, updatedFormData.toMonth, lastDay);
+
+        if (endDate >= startDate) {
+            console.log('success');
+            d3.selectAll('select').classed('form-control-red', false);
+            if (access_token) {
+                queryCheckinAPI(access_token, startDate, endDate);
+            }
+        }
+        else {
+            d3.selectAll('select').classed('form-control-red', true);
+            console.log('From date of '+toDate(startDate)+' is AFTER end date of '+toDate(endDate));
+        }
+    };
+    update();
+    $('#dateForm').change(update);
+})
+
+function queryCheckinAPI(access_token, afterTimestamp, beforeTimestamp) {
     $.ajax({
         url:'https://api.foursquare.com/v2/users/self/checkins?' + 'oauth_token=' + access_token
             + LATESTAPIDATE
@@ -47,9 +111,6 @@ if (access_token) {
             // print entire response for now
             console.log(data.response);
 
-            populateFormFields("from");
-            populateFormFields("to");
-
             loadCheckinTable(data.response);
 
         },
@@ -57,38 +118,7 @@ if (access_token) {
             console.error(e);
         }
     });
-} else {
-    client_id = 'MFEBTBYZ0ED2DBCS04NWC25CTMO0FVN5GWYYEGWV2SF4GHBG';
-    redirect_uri = 'http://localhost:8000/src/';
-    auth_url = 'https://foursquare.com/oauth2/authenticate?client_id=' + client_id + '&response_type=token&redirect_uri=' + redirect_uri;
-    $('#connection').html('<a href="' + auth_url + '" target="_new"><img src="connect4sq.png" alt="Connect to Foursquare"></a>');
 }
-
-// what to do on form update:
-$(function() {
-    var update = function() {
-        var updatedFormData = $('#dateForm').serializeArray()
-                                            .reduce(function(fullMap, miniMap) { 
-                                                        fullMap[miniMap.name] = miniMap.value;
-                                                        return fullMap;
-                                                    },
-                                                {});
-        console.log(updatedFormData);
-        var startDate = toEpoch(updatedFormData.fromYear, updatedFormData.fromMonth, 1);
-        console.log(startDate);
-        var endDate = toEpoch(updatedFormData.toYear, updatedFormData.toMonth, 1);
-        console.log(endDate);
-
-        if (endDate > startDate) {
-            console.log('success');
-        }
-        else {
-            console.log('From date of '+toDate(startDate)+' is AFTER end date of '+toDate(endDate));
-        }
-    };
-    update();
-    $('#dateForm').change(update);
-})
 
 function populateFormFields(prefix) {
     dateRangeForm = d3.select('#'+prefix+'DateRangeForm');
@@ -99,7 +129,7 @@ function populateFormFields(prefix) {
     fromDateFormMonth = d3.select('#'+prefix+'DateMonth')
                         .append('select')
                         .attr('class', 'form-control')
-                        .attr('name', prefix+'Month');;
+                        .attr('name', prefix+'Month');
     for (var i = 0; i < 12; i++) {
         fromDateFormMonth.append('option')
                             .attr('value', i)
@@ -122,6 +152,7 @@ function loadCheckinTable(response) {
     var maxDisplayed = 10;
 
     checkinTable = d3.select('#checkin-table');
+    checkinTable.html('');
     header = checkinTable.append('thead');
     row = header.append('tr');
 
