@@ -18,3 +18,20 @@
     display: inline-block;
     color: #ffa647;
 }
+
+.dateRangeArea {
+    padding: 13px 5px 5px 5px;
+    border-radius: 5px;
+    border: 1px black dashed;
+    margin-top: 5px;
+}
+
+.form-label {
+    font-style: oblique;
+    font-weight: bold;
+    text-align: center;
+}
+
+#checkin-table {
+    margin-top: 30px;
+}
