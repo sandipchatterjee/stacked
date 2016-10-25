@@ -112,7 +112,7 @@ function queryCheckinAPI(access_token, afterTimestamp, beforeTimestamp) {
             console.log(data.response);
 
             loadCheckinTable(data.response);
-
+            createVenueCatHist(data.response);
         },
         error: function(jqXHR, textStatus, e) {
             console.error(e);
@@ -210,4 +210,25 @@ function getAllCheckinNames(dataResponse) {
     }
 
     return checkinNames;
+}
+
+function createVenueCatHist(dataResponse) {
+    var freqs = {};
+    var checkins = dataResponse.checkins.items;
+    console.log(checkins);
+    for (var i = 0; i < checkins.length; i++) {
+        categories = checkins[i].venue.categories
+        for (var j = 0; j < categories.length; j++) {
+            category = categories[j].name;
+            if (category in freqs) {
+                freqs[category] += 1;
+            } else {
+                freqs[category] = 1;
+            }
+        }
+    }
+
+    console.log(freqs);
+    
+    return freqs
 }
